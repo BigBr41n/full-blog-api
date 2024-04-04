@@ -21,6 +21,10 @@ const usersRoute = require('./api/routes/user');
 const postsRoute = require('./api/routes/post'); 
 
 
+//middleware imports 
+const { notFound , errorHandler} = require('./api/middleware/errMid');
+
+
 
 
 
@@ -48,21 +52,8 @@ app.use('/api/posts' , postsRoute);
 
 
 // 404 routes 
-app.use((req, res , next)=>{
-    try {
-        const error = new Error('Invalid dir'); 
-        error.status = 404;
-        next(error); 
-    } catch (error) {
-        res.status(500).json({error : 'Internal server error'}); 
-    }
-}); 
-
-app.use((err, req, res, next) => {
-    res.locals.error = err;
-    const status = err.status || 500;
-    res.status(status).json({error : err.message});
-});
+app.use(notFound);
+app.use(errorHandler); 
 
 
 
