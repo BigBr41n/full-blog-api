@@ -1,0 +1,23 @@
+- .env
+- .gitignore
+- api
+  - config
+    - db.js
+  - controllers
+    - postControllers.js
+    - userController.js
+  - middleware
+    - authMiddle.js
+    - errMid.js
+  - models
+    - errorModel.js
+    - post.js
+    - user.js
+  - routes
+    - post.js
+    - user.js
+- app.js
+- package-lock.json
+- package.json
+- server.js
+- uploads
