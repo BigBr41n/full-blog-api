@@ -2,6 +2,7 @@
 const express = require('express'); 
 const cors = require('cors'); 
 const {db_connect} = require('./api/config/db'); 
+const upload = require('express-fileupload'); 
 
 
 
@@ -33,6 +34,11 @@ const { notFound , errorHandler} = require('./api/middleware/errMid');
 app.use(express.urlencoded({extended : true})); 
 app.use(express.json()); 
 app.use(cors({credentials :true , origin:"http://localhost:3000"})); 
+app.use(upload()); 
+
+
+//upload config 
+app.use('/uploads' , express.static(__dirname + '/uploads')); 
 
 
 

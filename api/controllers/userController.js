@@ -3,6 +3,10 @@ const HttpError = require('../models/errorModel');
 const bcrypt = require('bcrypt'); 
 const jwt  = require ('jsonwebtoken'); 
 require('dotenv').config(); 
+const uuid = require('uuid'); 
+
+const fs = require('fs'); 
+const path = require('path'); 
 
 //========= REGISTER NEW USER
 //========= POST : /api/users/register
@@ -108,8 +112,59 @@ module.exports.getUser = async (req , res , next)=>{
 //========= CHANGE USER AVATER
 //========= POST : /api/users/change-avatar
 //========= PROTECTED
-module.exports.changeAvatar = (req , res)=>{
+module.exports.changeAvatar = async (req , res , next)=>{
+    try {
 
+        //req.files
+        if(!req.files.avatar){
+            return next(new HttpError('PLease choose an Image' , 422)); 
+        }
+
+        // find user in databse
+        const user = await User.findById(req.user.id); 
+
+
+        //delete old avatar if exists
+        if(user.avatar){
+            fs.unlink(path.join(__dirname , '..' , 'uploads' , user.avatar ) , (err)=>{
+                if (err){
+                    return next(new HttpError(err)); 
+                }
+            });
+        }
+
+
+        const {avatar} = req.files ; 
+
+        //check size 
+        if(avatar.size > 500000){
+            return next(new HttpError('profile pic must be less than 500kb' , 422)); 
+        }
+
+        //if ok 
+        let fileName ; 
+        fileName = avatar.name ; 
+
+        let splittedFileName = fileName.split('.'); 
+        let newFileName = splittedFileName[0] + uuid() + '.' + splittedFileName[splittedFileName.length-1] ; 
+
+        avatar.mv(path.join(__dirname , '..' , 'uploads' , newFileName) , async (err)=>{
+            if(err){
+                return next(new HttpError(err)); 
+            }
+
+            const updatedAvatar = await User.findByIdAndUpdate(req.user.id , {avatar : newFileName } , {new : true}); 
+
+            if(! updatedAvatar){
+                return next(new HttpError('internal server error' , 422)); 
+            }
+
+            res.status(200).json(updatedAvatar); 
+        })
+
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
 
 
