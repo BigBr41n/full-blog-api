@@ -84,11 +84,22 @@ module.exports.loginUser = async (req , res , next)=>{
 
 
 
+
+
 //========= USER PROFILE
 //========= GET : /api/users/:id
 //========= PROTECTED
-module.exports.getUser = (req , res)=>{
-
+module.exports.getUser = async (req , res)=>{
+    try {
+        const {id}= req.params ; 
+        const user = await User.findById(id).select('-password'); 
+        if(!user){
+            return next(new HttpError('user not found' , 404)); 
+        }
+        res.status(200).json(user); 
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
 
 
