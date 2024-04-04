@@ -89,7 +89,7 @@ module.exports.loginUser = async (req , res , next)=>{
 //========= USER PROFILE
 //========= GET : /api/users/:id
 //========= PROTECTED
-module.exports.getUser = async (req , res)=>{
+module.exports.getUser = async (req , res , next)=>{
     try {
         const {id}= req.params ; 
         const user = await User.findById(id).select('-password'); 
@@ -127,6 +127,11 @@ module.exports.editUser = (req , res)=>{
 //========= GET AUTHORS
 //========= GET : /api/users/authors
 //========= UNPROTECTED
-module.exports.getAuthors = (req , res)=>{
-
+module.exports.getAuthors = async (req , res , next)=>{
+    try {
+        const authors = await User.find().select('-password'); 
+        res.status(200).json(authors); 
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
