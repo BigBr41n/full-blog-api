@@ -173,8 +173,56 @@ module.exports.changeAvatar = async (req , res , next)=>{
 //========= EDIT USER DETAILS
 //========= POST : /api/users/edit-user
 //========= PROTECTED
-module.exports.editUser = (req , res)=>{
+module.exports.editUser = (req , res , next)=>{
+    try {
+        const {username , email , currentPassword , newPassword , confirmPassword} = req.body;
 
+        if(!username || !email || !currentPassword || !newPassword || !confirmPassword){
+            return next(new HttpError('Fill in the fields'),422); 
+        }
+
+        //get user from data base 
+        const user = User.findById(req.user.id); 
+        if(!user){
+            return next(new HttpError('user not found') , 403); 
+        }
+
+        //make sure new email does not exist 
+        const emailExist = User.findOne({email}); 
+        if (email && (emailExist._id != req.user.id)){
+            return next(new HttpError('Email already exist.',422)); 
+        }
+
+
+        //compare passwords 
+        const validatePassword = bcrypt.compare(currentPassword , user.password); 
+        if(!validatePassword){
+            return next(new HttpError('incorrect password'),422); 
+        }
+
+
+        //compare new passwords 
+        if(newPassword != confirmPassword){
+            return next(new HttpError('New passwords do not match'),422); 
+        }
+
+        //hash new pass 
+        const hashedPassword = bcrypt.hash(confirmPassword ,  10); 
+
+
+        //edit the user
+        const newUser = User.findByIdAndUpdate(req.user.id , {
+            username : username , 
+            password : hashedPassword , 
+            email : email , 
+        } , {new : true});
+
+
+        res.status(200).json(newUser); 
+
+    } catch (error) {
+        
+    }
 }
 
 

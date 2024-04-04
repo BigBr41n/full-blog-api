@@ -8,7 +8,7 @@ router.post('/login',loginUser);
 router.get('/:id' , getUser); 
 router.get('/', getAuthors); 
 router.post('/change-avatar', auth,   changeAvatar); 
-router.patch('/edit-user' , editUser); 
+router.patch('/edit-user' ,auth ,  editUser); 
 
 
 
