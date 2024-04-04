@@ -1,4 +1,9 @@
-
+const Post = require('../models/post'); 
+const User = require('../models/user'); 
+const path = require('path'); 
+const fs = require('fs'); 
+const {v4 : uuid} = require('uuid'); 
+const HttpError = require('../models/errorModel'); 
 
 
 
@@ -6,7 +11,53 @@
 //============= POST : api/posts
 //============= PROTECTED 
 module.exports.createPost = async (req, res , next)=>{
+    try {
+        const {title , category , description } = req.body ; 
+        if (!title || !category || ! description  || !req.files){
+            return next(new HttpError('please fill the fields'), 422); 
+        }
 
+
+        const {thumbnail} = req.files ; 
+        //check the size //2MB
+        if(thumbnail.size > 2000000){
+            return next(new HttpError('thumbnail should be less than 2MB'),422); 
+        }
+
+        let fileName = thumbnail.name ; 
+        let splittedFileName = fileName.split('.'); 
+        let newFileName = splittedFileName[0] + uuid() + splittedFileName[splittedFileName.length -1] ;  
+
+        thumbnail.mv(path.join(__dirname , '..' , '/uploads' ,newFileName) , async(err)=>{
+            if (err){
+                return next(new HttpError(err)); 
+            }
+
+            else{
+                const newPost = await Post.create({
+                    title ,
+                    description , 
+                    category , 
+                    thumbnail : newFileName , 
+                    creator : req.user.id ,
+                }); 
+                if(!newPost){
+                    return next(new HttpError('Internal server Error'),500); 
+                }
+                //find user and increase posts count
+                const user = await User.findById(req.user.id); 
+                const postCount = user.posts + 1 ; 
+                await User.findByIdAndUpdate(req.user.id , {posts : postCount}); 
+
+
+
+                res.status(201).json(newPost); 
+            }
+        })
+
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
 
 

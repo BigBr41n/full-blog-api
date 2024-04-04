@@ -1,10 +1,10 @@
 const router = require('express').Router(); 
 const posts = require('../controllers/postControllers'); 
+const {auth} = require('../middleware/authMiddle'); 
 
 
 
-
-router.post('/' , posts.createPost ); 
+router.post('/' , auth , posts.createPost ); 
 router.get('/' , posts.getPosts ); 
 router.get('/:id' , posts.getSinglePost ); 
 router.get('/:category' , posts.getByCategory ); 
