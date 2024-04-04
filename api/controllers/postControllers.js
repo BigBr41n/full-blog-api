@@ -66,7 +66,15 @@ module.exports.createPost = async (req, res , next)=>{
 //============= GET : api/posts
 //============= UNPROTECTED 
 module.exports.getPosts = async (req, res , next)=>{
-
+    try {
+        const   allPosts = Post.find().sort({updatedAt : -1}); 
+        if(!allPosts){
+            return next(new HttpError('Internal server Error'),500); 
+        }
+        res.status(200).json(allPosts); 
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
 
 
@@ -75,7 +83,16 @@ module.exports.getPosts = async (req, res , next)=>{
 //============= GET /api/posts/:id
 //============= UNPROTECTED 
 module.exports.getSinglePost = async (req, res , next)=>{
-
+    try {
+        const id = req.params.id ; 
+        const findPost = Post.findById(id); 
+        if(!findPost){
+            return next(new HttpError('user do not exists'),422); 
+        }
+        res.status.json(findPost); 
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
 
 
