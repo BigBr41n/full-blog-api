@@ -101,7 +101,13 @@ module.exports.getSinglePost = async (req, res , next)=>{
 //============= GET : /api/posts/:category
 //============= UNPROTECTED 
 module.exports.getByCategory = async (req, res , next)=>{
-
+    try {
+        const category = req.params.category ; 
+        const catPost = Post.find({category}).sort({updatedAt : -1}); 
+        res.status(200).json(catPost);  
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
 
 
