@@ -209,5 +209,38 @@ module.exports.editPost = async (req, res , next)=>{
 //============= DELETE: /api/posts/:id
 //============= PROTECTED 
 module.exports.deletePost = async (req, res , next)=>{
+    try {
+        const postID = req.params.id ; 
+        if(!postID){
+            return next(new HttpError('Post Unavilable.' ,404)); 
+        }
 
+        const postToDelete =  await Post.findById(postID); 
+        const fileName = postToDelete?.thumbnail ; 
+
+        //check the ownership of the post 
+        if(req.user.id != postToDelete.create) return next(new HttpError('-_- not your post') , 400); 
+
+        //unlik the thumbnail 
+        fs.unlink(path.join(__dirname , '..' , 'uploads' , fileName) , async (err)=>{
+            if (err){
+                return next(new HttpError('unable to delete try later' , 500)); 
+            }
+            else {
+                await Post.findByIdAndDelete(postID); 
+                //reduce posts count
+                const user = await User.findById(req.user.id); 
+                const count = user?.posts -1 
+                await User.findByIdAndUpdate(req.user.id , {
+                    posts : count , 
+                }); 
+            }
+
+        })
+
+        res.status(200).json({message : `${postToDelete.id} deleted`})
+
+    } catch (error) {
+        return next(new HttpError(error)); 
+    }
 }
